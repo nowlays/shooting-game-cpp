@@ -1,76 +1,74 @@
+```cpp
 /* =============================================================================
 IDRIS YOUSFI
 
 README:
 
 
-Game Design Document
+Specification
 
 
-Game Description:
+Game description:
 
     The player controls a spaceship that can move horizontally
     and shoot projectiles using the keyboard. Positions use
-    complex numbers.
-
-    Projectiles are fired vertically.
-
-    The spaceship is positioned at the bottom of the screen
-    and moves horizontally using keyboard input.
-
-    Enemies are located at the top of the window and are static.
-
-    The game checks collision between projectiles and enemies.
-
-    Enemies are represented as rectangles, and projectiles as circles.
-    The project uses Complex numbers and particle concepts.
+    complex numbers. Projectiles are fired vertically.
+    The spaceship is placed at the bottom of the screen and moves with the keyboard.
+    Enemies are placed at the top of the screen and are static.
+    We check if a projectile collides with an enemy.
+    An enemy is represented by a rectangle, projectiles by a circle.
+    We use Complex numbers and particles.
 
 
 
 Improvements:
 
-    - Different spaceship types (faster shooting, multiple projectiles, etc.)
-    - Score system (100 points per destroyed enemy, win at 3000 points — not implemented yet)
-    - Enemies that shoot projectiles at the player
-    - Moving enemies instead of static ones
+    - different ships (faster shooting, multiple projectiles at once).
+    - a score counting destroyed enemies (100 points each, win at 3000 points — not implemented yet).
+    - enemies that shoot projectiles to make the player lose.
+    - moving enemies.
+    - enemies with health points (not killed in one hit).
 
 
-------------------------- TODO LIST -------------------------
+------------------------- Tasks -------------------------
+
 
 - InitGame - done
 
-- MoveSpaceship - done
+- MoveShip - done
 
-- ShootProjectile - partially done, but there is a bug in the projectile system.
-  I will debug it in the next session. I suspect the issue is around line 276.
+- ShootProjectile - done
 
-- MoveProjectile - not done
+- MoveProjectile - done
 
-- UpdateEnemies - not done
+- UpdateEnemy - not done
 
-- UpdateGame - not done
+- Update - not done
 
 - Collision - not done
 
-- Draw - partially done (missing assets and better visuals)
+- Draw - partially done, missing images / better visuals
+
 
 
 ------------------------- Week 1 - April 10 -------------------------
 
-Added InitGame function and main game structures.
-Created MoveSpaceship function.
+Added InitGame procedure and main game structures.
+Created MoveShip procedure.
+
+------------------------- Week 2 - April 17 -------------------------
+
+Added ShootProjectile and MoveProjectile procedures.
+Started Draw procedure using images for ship and enemies.
+
 
 ============================================================================= */
 
-#include <ctime>
-#include <iostream>
-#include <Grapic.h>
-
+#include<ctime>
+#include<iostream>
+#include<Grapic.h>
 using namespace grapic;
 using namespace std;
-
-
-// ------------------------- Complex numbers -------------------------
 
 struct Complex
 {
@@ -89,7 +87,7 @@ Complex make_complex(float x, float y)
 Complex make_complex_exp(float r, float theta_deg)
 {
     Complex z;
-    float theta = (theta_deg * M_PI) / 180.0;
+    float theta = (theta_deg * M_PI)/180.0;
     z.x = r * cos(theta);
     z.y = r * sin(theta);
     return z;
@@ -126,25 +124,22 @@ Complex operator*(float lambda, Complex b)
 
 Complex operator*(Complex b, float lambda)
 {
-    return operator*(lambda, b);
+    return operator*(lambda,b);
 }
 
 Complex scale(Complex p, float cx, float cy, float lambda)
 {
-    Complex c = make_complex(cx, cy);
-    return (p - c) * lambda + c;
+    Complex c = make_complex(cx,cy);
+    return (p-c)*lambda+c;
 }
 
 Complex operator*(Complex a, Complex b)
 {
     Complex z;
-    z.x = a.x * b.x - a.y * b.y;
-    z.y = a.x * b.y + a.y * b.x;
+    z.x = a.x*b.x - a.y*b.y;
+    z.y = a.x*b.y + a.y*b.x;
     return z;
 }
-
-
-// ------------------------- Color -------------------------
 
 struct Color
 {
@@ -153,7 +148,7 @@ struct Color
     int b;
 };
 
-Color operator+(Color a, Color b)
+Color operator+(Color a,Color b)
 {
     Color z;
     z.r = a.r + b.r;
@@ -162,7 +157,7 @@ Color operator+(Color a, Color b)
     return z;
 }
 
-Color operator*(float lambda, Color b)
+Color operator*(float lambda,Color b)
 {
     Color z;
     z.r = lambda * b.r;
@@ -171,12 +166,12 @@ Color operator*(float lambda, Color b)
     return z;
 }
 
-Color operator*(Color b, float lambda)
+Color operator*(Color b,float lambda)
 {
-    return operator*(lambda, b);
+    return operator*(lambda,b);
 }
 
-Color make_color(int r, int g, int b)
+Color make_color(int r,int g,int b)
 {
     Color c;
     c.r = r;
@@ -185,31 +180,36 @@ Color make_color(int r, int g, int b)
     return c;
 }
 
-
-// ------------------------- Distance -------------------------
-
 float distance(Complex V)
 {
-    return sqrt(V.x * V.x + V.y * V.y);
+    return sqrt(V.x*V.x + V.y*V.y);
 }
 
 float distance(Complex A, Complex B)
 {
-    return distance(B - A);
+    return distance(B-A);
 }
 
 
-// ------------------------- Constants -------------------------
+// ------------------------- Game constants -------------------------
 
-const int DIMW = 600; // window size
+const int DIMW = 600;
 
 const int NB_PROJECTILE = 300;
-const int NB_ENNEMY = 30;
+const int NB_ENNEMI = 30;
+const int PROJECTILE_VITESSE = 5;
+
+
+// ------------------------- Images -------------------------
+
+Image imgShip;
+Image imgEnemy;
+Image imgBg;
 
 
 // ------------------------- Structures -------------------------
 
-struct Spaceship
+struct Vaisseau
 {
     Complex pos;
 };
@@ -217,72 +217,99 @@ struct Spaceship
 struct Projectile
 {
     Complex pos;
-    Complex vel;
-    bool active;
+    Complex vit;
+    bool actif;
 };
 
-struct Enemy
+struct Ennemi
 {
     Complex pos;
-    bool alive;
+    bool vivant;
 };
 
-struct Game
+struct Jeu
 {
-    Spaceship spaceship;
+    Vaisseau vaisseau;
     Projectile projectile[NB_PROJECTILE];
-    Enemy enemy[NB_ENNEMY];
+    Ennemi ennemi[NB_ENNEMI];
     int nb_projectile;
-    int nb_enemy;
+    int nb_ennemi;
 };
 
 
-//------------------------- Game Logic -------------------------
+// ------------------------- Game initialization -------------------------
 
-void InitGame(Game &J, int nb_projectile, int nb_enemy)
+void InitJeu(Jeu &J, int nb_projectile, int nb_ennemi)
 {
-    int i;
-    J.spaceship.pos = make_complex(DIMW / 2, 80);
+    imgShip = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ship2.png");
+    imgEnemy = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ennemy.png");
+    imgBg = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/stars.jpg");
+
+    J.vaisseau.pos = make_complex(DIMW/2, 80);
     J.nb_projectile = nb_projectile;
-    J.nb_enemy = nb_enemy;
-    for (i = 0; i < nb_projectile; i++)
+    J.nb_ennemi = nb_ennemi;
+
+    for(int i = 0; i < nb_projectile; i++)
     {
-        J.projectile[i].active = false;
-        J.projectile[i].pos = make_complex(J.spaceship.pos.x, J.spaceship.pos.y);
-        J.projectile[i].vel = make_complex(J.spaceship.pos.x, J.spaceship.pos.y + 5);
+        J.projectile[i].actif = false;
+        J.projectile[i].pos = J.vaisseau.pos;
+        J.projectile[i].vit = make_complex(0, -PROJECTILE_VITESSE);
     }
-    for (i = 0; i < nb_enemy; i++)
+
+    for(int i = 0; i < nb_ennemi; i++)
     {
-        int row = i / 10;
-        int col = i % 10;
-        J.enemy[i].alive = true;
-        J.enemy[i].pos = make_complex(70 + col * 50, DIMW - 70 - row * 50);
+        int ligne = i / 10;
+        int colonne = i % 10;
+
+        J.ennemi[i].vivant = true;
+        J.ennemi[i].pos = make_complex(70 + colonne*50, DIMW-70 - ligne*50);
     }
 }
 
 
-// Move spaceship horizontally
-void MoveSpaceship(Game &J)
-{
-    if (isKeyPressed(SDLK_LEFT))
-        J.spaceship.pos.x -= 5;
+// ------------------------- Ship movement -------------------------
 
-    if (isKeyPressed(SDLK_RIGHT))
-        J.spaceship.pos.x += 5;
+void MouvementVaisseau(Jeu &J)
+{
+    if(isKeyPressed(SDLK_LEFT)) J.vaisseau.pos.x -= 5;
+    if(isKeyPressed(SDLK_RIGHT)) J.vaisseau.pos.x += 5;
 }
 
 
-// Shoot projectile
-void ShootProjectile(Game &J)
+// ------------------------- Shooting -------------------------
+
+void TirerProjectile(Jeu &J)
 {
-    const int PROJECTILE_SPEED = 5;
-    for (int i = 0; i < J.nb_projectile; i++)
+    if(isKeyPressed(SDLK_SPACE))
     {
-        if (isKeyPressed(SDLK_SPACE))
+        bool tire = false;
+
+        for(int i = 0; i < J.nb_projectile && !tire; i++)
         {
-            J.projectile[i].pos = make_complex(J.spaceship.pos.x, J.spaceship.pos.y);
-            J.projectile[i].vel = make_complex(J.spaceship.pos.x, i * PROJECTILE_SPEED);
-            J.projectile[i].active = true;
+            if(!J.projectile[i].actif)
+            {
+                J.projectile[i].pos = J.vaisseau.pos;
+                J.projectile[i].vit = make_complex(0, 5);
+                J.projectile[i].actif = true;
+                tire = true;
+            }
+        }
+    }
+}
+
+
+// ------------------------- Projectile movement -------------------------
+
+void MouvementProjectile(Jeu &J)
+{
+    for(int i = 0; i < J.nb_projectile; i++)
+    {
+        if(J.projectile[i].actif)
+        {
+            J.projectile[i].pos = J.projectile[i].pos + J.projectile[i].vit;
+
+            if(J.projectile[i].pos.y < 0 || J.projectile[i].pos.y > DIMW)
+                J.projectile[i].actif = false;
         }
     }
 }
@@ -290,27 +317,19 @@ void ShootProjectile(Game &J)
 
 // ------------------------- Draw -------------------------
 
-void Draw(Game &J)
+void Draw(Jeu &J)
 {
-    int i;
-    color(255, 255, 255);
-    rectangleFill(J.spaceship.pos.x - 10, J.spaceship.pos.y - 5, J.spaceship.pos.x + 10, J.spaceship.pos.y + 5);
-    color(241, 196, 15);
-    for (i = 0; i < J.nb_projectile; i++)
-    {
-        if (J.projectile[i].active)
-        {
+    image_draw(imgBg, 0, 0);
+
+    image_draw(imgShip, J.vaisseau.pos.x - 20, J.vaisseau.pos.y - 20);
+
+    for(int i = 0; i < J.nb_projectile; i++)
+        if(J.projectile[i].actif)
             circleFill(J.projectile[i].pos.x, J.projectile[i].pos.y, 5);
-        }
-    }
-    color(208, 53, 59);
-    for (i = 0; i < J.nb_enemy; i++)
-    {
-        if (J.enemy[i].alive)
-        {
-            rectangleFill(J.enemy[i].pos.x - 10, J.enemy[i].pos.y - 5, J.enemy[i].pos.x + 10, J.enemy[i].pos.y + 5);
-        }
-    }
+
+    for(int i = 0; i < J.nb_ennemi; i++)
+        if(J.ennemi[i].vivant)
+            image_draw(imgEnemy, J.ennemi[i].pos.x - 20, J.ennemi[i].pos.y - 20);
 }
 
 
@@ -319,20 +338,29 @@ void Draw(Game &J)
 int main(int, char **)
 {
     winInit("Shoot'em up", DIMW, DIMW);
-    bool stop = false;
+
+    Jeu jeu;
+    InitJeu(jeu, 150, 20);
+
     setKeyRepeatMode(true);
-    Game game;
-    backgroundColor(6, 50, 108);
-    InitGame(game, 150, 20);
-    while (!stop)
+
+    bool stop = false;
+
+    while(!stop)
     {
         winClear();
-        ShootProjectile(game);
-        MoveSpaceship(game);
-        Draw(game);
+
+        TirerProjectile(jeu);
+        MouvementVaisseau(jeu);
+        MouvementProjectile(jeu);
+
+        Draw(jeu);
+
         delay(30);
         stop = winDisplay();
     }
+
     winQuit();
     return 0;
 }
+```
