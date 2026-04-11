@@ -43,11 +43,11 @@ Improvements:
 
 - UpdateEnemy - not done
 
-- Update - not done
+- Update - done
 
-- Collision - not done
+- Collision - done
 
-- Draw - partially done, missing images / better visuals
+- Draw - done / better visuals
 
 
 
@@ -70,11 +70,13 @@ Started Draw procedure using images for ship and enemies.
 using namespace grapic;
 using namespace std;
 
+
 struct Complex
 {
     float x;
     float y;
 };
+
 
 Complex make_complex(float x, float y)
 {
@@ -103,7 +105,9 @@ Complex operator+(Complex a, Complex b)
 
 Complex translate(Complex a, Complex b)
 {
-    return a + b;
+    Complex z;
+    z = a + b;
+    return z;
 }
 
 Complex operator-(Complex a, Complex b)
@@ -140,6 +144,7 @@ Complex operator*(Complex a, Complex b)
     z.y = a.x*b.y + a.y*b.x;
     return z;
 }
+
 
 struct Color
 {
@@ -191,23 +196,29 @@ float distance(Complex A, Complex B)
 }
 
 
-// ------------------------- Game constants -------------------------
+// ------------------------- Constants-Initialization -------------------------
 
-const int DIMW = 600;
+
+const int DIMW = 600; // window size
 
 const int NB_PROJECTILE = 300;
 const int NB_ENNEMI = 30;
 const int PROJECTILE_VITESSE = 5;
 
+const int ENEMY_TAILLE = 40; // enemy hitbox size
+const int ENEMY_RAYON = 20; // enemy radius for collision
+const int PROJECTILE_RAYON = 5; // projectile hitbox radius
+
 
 // ------------------------- Images -------------------------
+
 
 Image imgShip;
 Image imgEnemy;
 Image imgBg;
 
-
 // ------------------------- Structures -------------------------
+
 
 struct Vaisseau
 {
@@ -237,68 +248,69 @@ struct Jeu
 };
 
 
-// ------------------------- Game initialization -------------------------
+//------------------------- Main-Program -------------------------
 
 void InitJeu(Jeu &J, int nb_projectile, int nb_ennemi)
 {
-    imgShip = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ship2.png");
-    imgEnemy = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ennemy.png");
-    imgBg = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/stars.jpg");
+    imgShip = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ship2.png"); // Absolute path
+    imgEnemy = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ennemy.png"); // Absolute path
+    imgBg = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/stars.jpg"); // Absolute path
 
-    J.vaisseau.pos = make_complex(DIMW/2, 80);
+    int i;
+    J.vaisseau.pos = make_complex(DIMW/2, 80); // place the ship at the bottom-center
     J.nb_projectile = nb_projectile;
     J.nb_ennemi = nb_ennemi;
-
-    for(int i = 0; i < nb_projectile; i++)
+    for(i = 0; i < nb_projectile; i++)
     {
         J.projectile[i].actif = false;
-        J.projectile[i].pos = J.vaisseau.pos;
-        J.projectile[i].vit = make_complex(0, -PROJECTILE_VITESSE);
+        J.projectile[i].pos = make_complex(J.vaisseau.pos.x,J.vaisseau.pos.y);
+        J.projectile[i].vit = make_complex(0, -PROJECTILE_VITESSE); // shoots upwards
     }
-
-    for(int i = 0; i < nb_ennemi; i++)
+    for(i = 0; i < nb_ennemi; i++)
     {
-        int ligne = i / 10;
-        int colonne = i % 10;
+        // Calculate grid position:
+        // row: integer division allows 10 enemies per row (e.g., 1/10=0, 11/10=1)
+        int ligne = i / 10; 
+        // column: modulo wraps the value back to 0 every 10 enemies (e.g., 9%10=9, 10%10=0)
+        int colonne = i % 10; 
+        
+        J.ennemi[i].vivant = true; // all enemies are alive at the start
+        // Set position: spaced by 60 pixels, starting from the top of the window
+        J.ennemi[i].pos = make_complex(20 + colonne*60, DIMW-60 - ligne *60);  
+    }   
+}
 
-        J.ennemi[i].vivant = true;
-        J.ennemi[i].pos = make_complex(70 + colonne*50, DIMW-70 - ligne*50);
+void MouvementVaisseau(Jeu &J) // Horizontal movement of the ship
+{
+    if(isKeyPressed(SDLK_LEFT))
+    {
+        J.vaisseau.pos.x -= 5;
+    }
+    if(isKeyPressed(SDLK_RIGHT))
+    {
+        J.vaisseau.pos.x += 5;
     }
 }
 
-
-// ------------------------- Ship movement -------------------------
-
-void MouvementVaisseau(Jeu &J)
-{
-    if(isKeyPressed(SDLK_LEFT)) J.vaisseau.pos.x -= 5;
-    if(isKeyPressed(SDLK_RIGHT)) J.vaisseau.pos.x += 5;
-}
-
-
-// ------------------------- Shooting -------------------------
 
 void TirerProjectile(Jeu &J)
 {
-    if(isKeyPressed(SDLK_SPACE))
+    if (isKeyPressed(SDLK_SPACE))
     {
         bool tire = false;
 
-        for(int i = 0; i < J.nb_projectile && !tire; i++)
+        for (int i = 0; (i < J.nb_projectile) && (tire == false); i++)
         {
-            if(!J.projectile[i].actif)
+            if (!J.projectile[i].actif)
             {
                 J.projectile[i].pos = J.vaisseau.pos;
                 J.projectile[i].vit = make_complex(0, 5);
                 J.projectile[i].actif = true;
-                tire = true;
+                tire = true; // block after 1 shot to avoid spawning all at once
             }
         }
     }
 }
-
-
-// ------------------------- Projectile movement -------------------------
 
 void MouvementProjectile(Jeu &J)
 {
@@ -307,60 +319,133 @@ void MouvementProjectile(Jeu &J)
         if(J.projectile[i].actif)
         {
             J.projectile[i].pos = J.projectile[i].pos + J.projectile[i].vit;
-
-            if(J.projectile[i].pos.y < 0 || J.projectile[i].pos.y > DIMW)
+            // if the projectile goes out of the window, deactivate it
+            if((J.projectile[i].pos.y < 0)||(J.projectile[i].pos.y > DIMW)) 
+            {
                 J.projectile[i].actif = false;
+            }    
         }
     }
 }
 
 
-// ------------------------- Draw -------------------------
+/*
+void Draw(Jeu &J) // with no image
+{
+    int i;
+    color(255,255,255); // ship color
+    rectangleFill(J.vaisseau.pos.x - 10, J.vaisseau.pos.y - 5, J.vaisseau.pos.x + 10, J.vaisseau.pos.y + 5);
+    
+    color(241, 196, 15); // projectile color
+    for(i = 0; i < J.nb_projectile; i++)
+    {
+        if(J.projectile[i].actif)
+        {
+            circleFill(J.projectile[i].pos.x, J.projectile[i].pos.y, 5);
+        }
+    }
+
+    color(208, 53, 59); // enemy color
+    for(i = 0; i < J.nb_ennemi; i++)
+    {
+        if(J.ennemi[i].vivant)
+        {
+            rectangleFill(J.ennemi[i].pos.x - 10, J.ennemi[i].pos.y - 5, J.ennemi[i].pos.x + 10, J.ennemi[i].pos.y + 5);
+        }
+    }
+}
+*/
 
 void Draw(Jeu &J)
 {
+    int i;
     image_draw(imgBg, 0, 0);
-
-    image_draw(imgShip, J.vaisseau.pos.x - 20, J.vaisseau.pos.y - 20);
-
-    for(int i = 0; i < J.nb_projectile; i++)
-        if(J.projectile[i].actif)
+    const int SHIP_TAILLE = 40;
+    image_draw(imgShip, J.vaisseau.pos.x - SHIP_TAILLE / 2, J.vaisseau.pos.y - SHIP_TAILLE / 2);
+    color(0, 200, 0);
+    for (i = 0; i < J.nb_projectile; i++)
+    {
+        if (J.projectile[i].actif)
+        {
             circleFill(J.projectile[i].pos.x, J.projectile[i].pos.y, 5);
-
-    for(int i = 0; i < J.nb_ennemi; i++)
-        if(J.ennemi[i].vivant)
-            image_draw(imgEnemy, J.ennemi[i].pos.x - 20, J.ennemi[i].pos.y - 20);
+        }
+    }
+    const int ENEMY_TAILLE = 40;
+    for (i = 0; i < J.nb_ennemi; i++)
+    {
+        if (J.ennemi[i].vivant)
+        {
+            image_draw(imgEnemy, J.ennemi[i].pos.x - ENEMY_TAILLE / 2, J.ennemi[i].pos.y - ENEMY_TAILLE / 2);
+        }
+    }
 }
 
 
-// ------------------------- Main -------------------------
+void Collision(Jeu &J)
+{
+    for (int i = 0; i < J.nb_projectile; i++)
+    {
+        if (J.projectile[i].actif)
+        {
+            for (int j = 0; j < J.nb_ennemi; j++)
+            {
+                if (J.ennemi[j].vivant)
+                {
+                    float d = distance(
+                        J.projectile[i].pos,
+                        J.ennemi[j].pos
+                    );
+
+                    if (d < PROJECTILE_RAYON + ENEMY_RAYON)
+                    {
+                        J.projectile[i].actif = false;
+                        J.ennemi[j].vivant = false;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CollisionVaisseau(Jeu &J)
+{
+    if (J.vaisseau.pos.x <= 0)
+    {
+        J.vaisseau.pos.x = 0;
+    }
+    if (J.vaisseau.pos.x >= DIMW)
+    {
+        float delta = J.vaisseau.pos.x - DIMW;
+        J.vaisseau.pos.x = DIMW + delta;
+    }
+}
+
+void update(Jeu &J)
+{
+    MouvementVaisseau(J);
+    TirerProjectile(J);
+    MouvementProjectile(J);
+    // UpdateEnnemi(J);
+    Collision(J);
+}
+
 
 int main(int, char **)
 {
     winInit("Shoot'em up", DIMW, DIMW);
-
-    Jeu jeu;
-    InitJeu(jeu, 150, 20);
-
-    setKeyRepeatMode(true);
-
     bool stop = false;
-
-    while(!stop)
+    setKeyRepeatMode(true); // enable continuous ship movement when key is held
+    Jeu jeu;
+    backgroundColor(6, 50, 108);
+    InitJeu(jeu, 150, 20);
+    while (!stop)
     {
         winClear();
-
-        TirerProjectile(jeu);
-        MouvementVaisseau(jeu);
-        MouvementProjectile(jeu);
-
+        update(jeu);
         Draw(jeu);
-
         delay(30);
         stop = winDisplay();
     }
-
     winQuit();
     return 0;
-}
-```
+}```
