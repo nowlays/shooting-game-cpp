@@ -252,9 +252,9 @@ struct Jeu
 
 void InitJeu(Jeu &J, int nb_projectile, int nb_ennemi)
 {
-    imgShip = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ship2.png"); // Absolute path
-    imgEnemy = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/ennemy.png"); // Absolute path
-    imgBg = image("/home/idris/cours/S2/lifami/grapic-24.01.29/data/images/stars.jpg"); // Absolute path
+    imgShip = image("/Absolute path/images/ship2.png");
+    imgEnemy = image("/Absolute path/images/ennemy.png");
+    imgBg = image("/Absolute path/images/stars.jpg");
 
     int i;
     J.vaisseau.pos = make_complex(DIMW/2, 80); // place the ship at the bottom-center
