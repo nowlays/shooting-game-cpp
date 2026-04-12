@@ -407,7 +407,7 @@ void Collision(Jeu &J)
     }
 }
 
-void CollisionVaisseau(Jeu &J) // bug
+void CollisionVaisseau(Jeu &J)
 {
     if (J.vaisseau.pos.x <= 0)
     {
@@ -416,7 +416,7 @@ void CollisionVaisseau(Jeu &J) // bug
     if (J.vaisseau.pos.x >= DIMW)
     {
         float delta = J.vaisseau.pos.x - DIMW;
-        J.vaisseau.pos.x = DIMW + delta;
+        J.vaisseau.pos.x = DIMW - delta;
     }
 }
 
@@ -426,6 +426,7 @@ void update(Jeu &J)
     TirerProjectile(J);
     MouvementProjectile(J);
     Collision(J);
+    CollisionVaisseau(J);
 }
 
 int main(int, char **)
