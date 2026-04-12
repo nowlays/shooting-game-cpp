@@ -407,7 +407,7 @@ void Collision(Jeu &J)
     }
 }
 
-void CollisionVaisseau(Jeu &J)
+void CollisionVaisseau(Jeu &J) // bug
 {
     if (J.vaisseau.pos.x <= 0)
     {
@@ -425,10 +425,8 @@ void update(Jeu &J)
     MouvementVaisseau(J);
     TirerProjectile(J);
     MouvementProjectile(J);
-    // UpdateEnnemi(J);
     Collision(J);
 }
-
 
 int main(int, char **)
 {
