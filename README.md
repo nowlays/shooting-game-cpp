@@ -1,4 +1,4 @@
-# Shooting Game C++ (Work in Progress)
+# Shooting Game C++
 
 ## Project Description
 
