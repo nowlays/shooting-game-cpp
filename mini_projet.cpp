@@ -1,94 +1,5 @@
 ```cpp
 
-/* =============================================================================
-IDRIS YOUSFI
-
-README :
-
-
-Cahier des charges
-
-
-Description du jeu:
-
-    Le joueur controle un vaisseau qui peut se deplacer horizontalement
-    et tier des projectilespour deplacant au clavier. Les positiond vont utliser
-    des nombres complex. Les projectiles sont tirés verticalement. Le vaisseau va etre 
-    positionner en bas et se deplacant au clavier. Les ennemis eux sont en haut de la
-    fenetre et fixe. On va regarder si un projectile rentre en collision avec un ennemi.
-    Un ennemi sera representer par un rectangle, les projectiles par un cercle on 
-    utilisera les les Complex et les Particules.  
-
-
-
-Amelioration:  
-
-    - faire different vaisseau(tire plus rapide, tire plusieur projectile en meme temps). - non fait
-    - un score qui compte les ennemis detruit par 100 et à 3 000 on gagne. - fait
-    - des ennemis qui envoie des projectile pour nous faire perdre. - non fait
-    - des ennemis qui ne sont pas fixe. - fait
-    - des ennemis qui ont des points de vie et qui ne meurent pas en un coup. - non fait
-
-
-------------------------- Fonction-à-faire -------------------------
-
-
-- InitJeu - fait
-
-- MouvementVaisseau - fait
-
-- TirerProjectile - fait
-
-- MouvementProjectile - fait
-
-- MouvementVaisseau - fait
-
-- Update - fait
-
-- Collision - fait
-
-- CollisionVaisseau - fait
-
-- Draw - fait
-
-- Draw_Image - fait
-
-- Score - fait
-
-
-
-
-
-------------------------- 1er-Semaine-10-avril -------------------------
-
-- Ajout de la procédure initJeu ainsi que les structures principal du jeu. 
-
-- Creation de la procédure MouvementVaisseau.
-
-------------------------- 2eme-Semaine-20-avril -------------------------
-
-- Ajout de la procédure TirerProjectile et MouvementProjectile. 
-
-- J'ai aussi commencé a faire la procedure Draw mais j'ai mis images pour le vaisseau et les ennemis.
-
-
------------------- 3eme-Semaine-24-avril/rendu final --------------------
-
-
-- La procédure TirerProjectile a été corrigée.
-
-- Les procédures Collision et CollisionVaisseau ont été ajoutées pour gérer les collisions entre projectiles, ennemis et limites de la fenêtre.
-
-- Une procédure Draw_Image a été créée pour afficher les images du vaisseau, des ennemis et du fond.
-
-- La procédure MouvementEnnemi permet maintenant aux ennemis de descendre vers le vaisseau. Si un ennemi atteint le bas de la fenêtre, le joueur perd.
-
-- Le système de score est fait chaque ennemi détruit rapporte 100 points et le joueur gagne à 2000 points.
-
-
-============================================================================= */
-
-#include<ctime>
 #include<iostream>
 #include<Grapic.h>
 using namespace grapic;
@@ -110,14 +21,6 @@ Complex make_complex(float x, float y)
     return z;
 }
 
-Complex make_complex_exp(float r, float theta_deg)
-{
-    Complex z;
-    float theta = (theta_deg * M_PI)/180.0;
-    z.x = r * cos(theta);
-    z.y = r * sin(theta);
-    return z;
-}
 
 Complex operator+(Complex a, Complex b)
 {
@@ -155,11 +58,6 @@ Complex operator*(Complex b, float lambda)
     return operator*(lambda,b);
 }
 
-Complex scale(Complex p, float cx, float cy, float lambda)
-{
-    Complex c = make_complex(cx,cy);
-    return (p-c)*lambda+c;
-}
 
 Complex operator*(Complex a, Complex b)
 {
@@ -169,45 +67,6 @@ Complex operator*(Complex a, Complex b)
     return z;
 }
 
-
-struct Color
-{
-    int r;
-    int g;
-    int b;
-};
-
-Color operator+(Color a,Color b)
-{
-    Color z;
-    z.r = a.r + b.r;
-    z.g = a.g + b.g;
-    z.b = a.b + b.b;
-    return z;
-}
-
-Color operator*(float lambda,Color b)
-{
-    Color z;
-    z.r = lambda * b.r;
-    z.g = lambda * b.g;
-    z.b = lambda * b.b;
-    return z;
-}
-
-Color operator*(Color b,float lambda)
-{
-    return operator*(lambda,b);
-}
-
-Color make_color(int r,int g,int b)
-{
-    Color c;
-    c.r = r;
-    c.g = g;
-    c.b = b;
-    return c;
-}
 
 float Distance(Complex V)
 {
@@ -222,8 +81,7 @@ float Distance(Complex A, Complex B)
 
 // ------------------------- Initialisation-des-constantes -------------------------
 
-
-const int DIMW = 600; // taille de la fenetre
+const int DIMW = 600;
 
 const int NB_PROJECTILE = 300;
 const int NB_ENNEMI = 30;
@@ -273,38 +131,36 @@ struct Jeu
 };
 
 
-//------------------------- Programme-principal -------------------------
+// ------------------------- Programme-principal -------------------------
 
 void InitJeu(Jeu &J, int nb_projectile, int nb_ennemi)
 {
     imgVaisseau = image("data/images/ship2.png"); // chemin relatif des images
     imgEnnemi = image("data/images/ennemy.png");
     imgFond = image("data/images/stars.jpg");
-
-    int i;
     J.vaisseau.pos = make_complex(DIMW/2, 80); // on place le vaisseau au milleur-bas
     J.nb_projectile = nb_projectile;
     J.nb_ennemi = nb_ennemi;
-    for(i = 0; i < nb_projectile; i++)
+    for(int i = 0; i < nb_projectile; i++)
     {
         J.projectile[i].actif = false;
-        J.projectile[i].pos = make_complex(J.vaisseau.pos.x,J.vaisseau.pos.y);
+        J.projectile[i].pos = make_complex(J.vaisseau.pos.x, J.vaisseau.pos.y);
         J.projectile[i].vit = make_complex(0, -PROJECTILE_VITESSE); // tire vers le haut
     }
-    for(i = 0; i < nb_ennemi; i++)
+    for(int i = 0; i < nb_ennemi; i++)
     {
-        int ligne = i / 10; // c'est un int il prend la valeur entiere donc il va faire un parcourir 10 ennemis a chaque ligne exemple : 1/10=0 ; 2/10=0 ; 9/10=0 ; 11/10=1 ; 22/10=2
-        int colonne = i % 10; // il prend le reste donc il parcours les collones il parcours et une fois arriver a 10 le modulo va le ramener a 0 : 1%10=1 ; 2%10=2 ; 9%10=9; 10%10=0 ; 15%10=5 ; 27%10=7
+        int ligne = i / 10; // c'est un int il prend la valeur entiere donc il va faire un parcourt de 10 ennemis a chaque ligne exemple : 1/10=0 ; 2/10=0 ; 9/10=0 ; 11/10=1 ; 22/10=2
+        int colonne = i % 10; // il prend le reste donc il parcourt les colonnes, une fois arrivé à 10 le modulo va le ramener à 0 : 1%10=1 ; 2%10=2 ; 9%10=9; 10%10=0 ; 15%10=5 ; 27%10=7
         
-        J.ennemi[i].vivant = true; // tout les ennemis seront present au debut
-        J.ennemi[i].pos = make_complex(20 + colonne*60, DIMW-60 - ligne *60);  // j'ai mis 50 pour les espacés et DIMW-70 pour les faire mettre à partir du haut de la fenetre 
+        J.ennemi[i].vivant = true;
+        J.ennemi[i].pos = make_complex(20 + colonne*60, DIMW-60 - ligne *60); // j'ai mis des valeurs pour les espacer et DIMW-60 pour les placer à partir du haut de la fenetre
     }   
 }
 
 
 
 
-void MouvementVaisseau(Jeu &J) // Deplacement du vaisseau en horizontal et vertical
+void MouvementVaisseau(Jeu &J) // limite du vaisseau en horizontal et vertical
 {
     if(isKeyPressed(SDLK_LEFT))
     {
@@ -322,7 +178,6 @@ void MouvementVaisseau(Jeu &J) // Deplacement du vaisseau en horizontal et verti
     {
         J.vaisseau.pos.y += 5;
     }
-    
 }
 
 
@@ -332,7 +187,7 @@ void TirerProjectile(Jeu &J)
 {
     if(isKeyPressed(SDLK_SPACE))
     {
-        bool tire = false;
+        bool tire = false; // pour tirer un projectile un à un
         for (int i = 0; (i < J.nb_projectile) && (tire == false); i++)
         {
             if (J.projectile[i].actif == false)
@@ -368,7 +223,7 @@ void MouvementEnnemi(Jeu &J)
 {
     for(int i = 0; i < J.nb_ennemi; i++)
     {
-        J.ennemi[i].pos.y -= 0.4; 
+        J.ennemi[i].pos.y -= 0.4; // vitesse de la descente des ennemis
     }
     
 }
@@ -438,7 +293,7 @@ void Draw_Image(Jeu &J)
     image_draw(imgVaisseau, J.vaisseau.pos.x - VAISSEAU_TAILLE / 2, J.vaisseau.pos.y - VAISSEAU_TAILLE / 2);
     color(0, 200, 0);
     for (i = 0; i < J.nb_projectile; i++)
-    {
+        {
         if (J.projectile[i].actif == true)
         {
             circleFill(J.projectile[i].pos.x, J.projectile[i].pos.y, 5);
@@ -468,9 +323,9 @@ void Collision(Jeu &J)
             {
                 if (J.ennemi[j].vivant == true)
                 {
-                    float distance = Distance(J.projectile[i].pos, J.ennemi[j].pos);
+                    float distance = Distance(J.projectile[i].pos, J.ennemi[j].pos); // calcule de leurs distances
 
-                    if (distance < PROJECTILE_RAYON + ENNEMI_RAYON)
+                    if (distance < PROJECTILE_RAYON + ENNEMI_RAYON) // si la distance est trop courte alors ca signifie qu'ils retrent en collision 
                     {
                         J.projectile[i].actif = false;
                         J.ennemi[j].vivant = false;
@@ -523,7 +378,7 @@ int main(int, char **)
 {
     winInit("Shoot'em up", DIMW, DIMW);
     bool stop = false;
-    setKeyRepeatMode(true);// pour que le vaisseau puisse se deplacer en continu
+    setKeyRepeatMode(true); // pour que le vaisseau puisse se deplacer en continu
     Jeu jeu;
     backgroundColor(6, 50, 108);
     InitJeu(jeu, 150, 20);
@@ -531,7 +386,7 @@ int main(int, char **)
     {
         winClear();
         Update(jeu);
-        //Draw(jeu);
+        //Draw(jeu); // draw sans images
         Draw_Image(jeu);
         delay(30);
         stop = winDisplay();
@@ -539,6 +394,5 @@ int main(int, char **)
     winQuit();
     return 0;
 }
-
 
 ```
