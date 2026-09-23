@@ -1,102 +1,117 @@
-# Shooting Game C++
+Shooting Game C++
 
-# YOUSFI IDRIS
+YOUSFI IDRIS
 
-## README
+Game Description
 
----
+This project is a simple 2D shooting game developed in C++ using the Grapic library.
 
-## Description du jeu
+The player controls a spaceship that can move horizontally and vertically using the arrow keys. The player can also shoot projectiles using the space bar.
 
-Le joueur controle un vaisseau qui peut se deplacer horizontalement et verticalement
-et tirer des projectiles à l'aide de la barre espace. Les positions utilisent
-des nombres complexes.
+The spaceship is located at the bottom of the window, while enemies appear at the top and move down towards the player.
 
-Les projectiles sont tirés verticalement (vers le haut).
-Le vaisseau est positionné en bas et se deplace avec le clavier (les fleches).
+The game uses complex numbers to represent positions and relies on the Complex and Particle structures.
 
-Les ennemis sont en haut de la fenetre et se deplacent vers le bas.
-On verifie si un projectile entre en collision avec un ennemi.
+Projectiles are represented by circles and enemies by rectangles. The game checks for collisions between projectiles and enemies.
 
-Un ennemi est representé par un rectangle,
-les projectiles par un cercle (avec draw, sans images).
+⸻
 
-On utilise les Complex et les Particules.
+Objective
 
----
+The goal of the game is to destroy the enemies before they reach the player’s spaceship.
 
-## But du jeu
+* Destroy the enemies by shooting them
+* Each destroyed enemy gives 100 points
+* Reach 2000 points to win the game
+* If an enemy reaches the bottom of the window, the player loses
 
-On controle un vaisseau, on doit tirer sur les ennemis qui tombent vers nous.
+⸻
 
-- Il faut detruire tous les ennemis
-- Chaque ennemi vaut 100 points
-- A 2000 points on gagne
-- Si les ennemis arrivent jusqu'au vaisseau on perd
+Controls
 
----
+* Arrow keys: Move the spaceship
+* Space bar: Shoot
 
-## Touche
+⸻
 
-- Fleches : pour se deplacer
-- Barre espace : pour tirer
+Implemented Features
 
----
+* Spaceship movement
+* Projectile shooting
+* Projectile movement
+* Enemy movement
+* Projectile-enemy collision detection
+* Spaceship-enemy collision detection
+* Score system
+* Win condition
+* Lose condition
+* Image rendering
+* Moving enemies
 
-## Amelioration
+⸻
 
-- Faire differents vaisseaux (tir plus rapide, tirer plusieurs projectiles en meme temps) - non fait
-- Un score qui compte les ennemis detruits par 100 et victoire a 3000 points - fait
-- Des ennemis qui envoient des projectiles - non fait
-- Des ennemis qui ne sont pas fixes - fait
-- Des ennemis qui ont des points de vie et qui ne meurent pas en un coup - non fait
+Possible Improvements
 
----
+The following features could be added to further improve the game:
 
-## Fonction-a-faire
+* Different types of spaceships with different shooting speeds
+* The ability to shoot multiple projectiles at the same time
+* Enemies that can shoot projectiles
+* Enemies with different movement patterns
+* Enemies with health points that require multiple hits to destroy
+* Different types of enemies with different abilities
 
-- InitJeu - fait
-- MouvementVaisseau - fait
-- TirerProjectile - fait
-- MouvementProjectile - fait
-- MouvementVaisseau - fait
-- Update - fait
-- Collision - fait
-- CollisionVaisseau - fait
-- Draw - fait
-- Draw_Image - fait
-- Score - fait
+⸻
 
----
+Main Functions
 
-## 1er-Semaine-10-avril
+The game is organized around several main functions:
 
-- Ajout de la procedure InitJeu ainsi que les structures principales du jeu
-- Creation de la procedure MouvementVaisseau
+* InitJeu — Initializes the game
+* MouvementVaisseau — Handles spaceship movement
+* TirerProjectile — Creates and shoots projectiles
+* MouvementProjectile — Handles projectile movement
+* MouvementEnnemi — Handles enemy movement
+* Update — Updates the game state
+* Collision — Checks collisions between projectiles and enemies
+* CollisionVaisseau — Checks collisions between enemies and the spaceship
+* Draw — Draws the game elements
+* Draw_Image — Displays images
+* Score — Handles the scoring system
 
----
+⸻
 
-## 3eme-Semaine-24-avril-rendu-final
+Development History
 
-- Ajout de la procedure TirerProjectile et MouvementProjectile
-- Debut de la procedure Draw avec images pour le vaisseau et les ennemis
-- Correction de la procedure TirerProjectile
-- Ajout des procedures Collision et CollisionVaisseau pour gerer les collisions
-- Creation de la procedure Draw_Image pour afficher les images du vaisseau, des ennemis et du fond
-- La procedure MouvementEnnemi permet aux ennemis de descendre vers le vaisseau
-- Si un ennemi atteint le bas de la fenetre, le joueur perd
-- Mise en place du systeme de score :
-  - 100 points par ennemi detruit
-  - Victoire a 2000 points
+Week 1 — April 10
 
----
+* Added the InitJeu procedure
+* Created the main game structures
+* Implemented the MouvementVaisseau procedure
 
-## Reference-inspiration
+Week 3 — April 24 — Final Submission
 
-- Inspiration principal :
-https://apps.apple.com/us/app/galaxy-attack-alien-shooter/id1176011642
+* Added the TirerProjectile and MouvementProjectile procedures
+* Started implementing Draw with images for the spaceship and enemies
+* Fixed the TirerProjectile procedure
+* Added the Collision and CollisionVaisseau procedures
+* Created the Draw_Image procedure to display the spaceship, enemies, and background
+* Added the MouvementEnnemi procedure
+* Added the lose condition when an enemy reaches the bottom of the window
+* Implemented the scoring system:
+    * 100 points per destroyed enemy
+    * 2000 points required to win
 
-- Autre source :
-  - https://www.reddit.com/r/shmups/comments/1cbv497/i_made_a_game_mockup_for_a_shootem_up_game_in/
-  - print : https://perso.liris.cnrs.fr/alexandre.meyer/grapic/html/namespacegrapic_a33f4fbc99a34321912f989649797cdcd.html#a33f4fbc99a34321912f989649797cdcd
-  - setKeyRepeatMode : https://perso.liris.cnrs.fr/alexandre.meyer/grapic/html/namespacegrapic_a328e76a64c78ccce639a78e042a4a489.html#a328e76a64c78ccce639a78e042a4a489
+⸻
+
+Inspiration and References
+
+Main Inspiration
+
+Galaxy Attack: Alien Shooter — App Store
+
+Other References
+
+* Reddit — Shoot ’em up game mockup
+* Grapic — print function
+* Grapic — setKeyRepeatMode function
